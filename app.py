@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -232,3 +232,18 @@ def initialize_database():
     except Exception:
         pass
     db.create_all()
+
+
+@app.route('/debug-status')
+def debug_status():
+    info = {}
+    info['has_DATABASE_URL'] = bool(os.environ.get('DATABASE_URL'))
+    sqlite_path = os.path.join('instance', 'database.db')
+    info['sqlite_exists'] = os.path.exists(sqlite_path)
+    # Include non-sensitive DB diagnostics: counts or error
+    try:
+        info['user_count'] = User.query.count()
+        info['record_count'] = Record.query.count()
+    except Exception as e:
+        info['db_error'] = str(e)
+    return jsonify(info), 200
