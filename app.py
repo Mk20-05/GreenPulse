@@ -6,6 +6,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.exceptions import HTTPException
 import random
 from datetime import datetime
 
@@ -32,8 +33,7 @@ login_manager.login_view = 'login'
 def initialize_database():
     """
     Ensure the appropriate directory exists for SQLite and create tables.
-    This is called at import time so it works in serverless / Flask 3 environments
-    where before_first_request is not available.
+    Called after models are defined so all tables exist before use.
     """
     try:
         if os.environ.get("VERCEL"):
@@ -42,31 +42,30 @@ def initialize_database():
         else:
             os.makedirs('instance', exist_ok=True)
     except Exception:
-        # Silently ignore directory creation errors; db.create_all() may still succeed
+        # Silently ignore directory creation errors
         pass
 
     try:
         with app.app_context():
             db.create_all()
     except Exception:
-        # Avoid crashing import on DB init issues; they will show up in logs if needed
         tb = traceback.format_exc()
         app.logger.error('Database initialization error:\n%s', tb)
-
-
-# Initialize DB when the module is imported (for Vercel/serverless cold starts)
-initialize_database()
 
 # Health check endpoint for deployments
 @app.route('/health')
 def health():
-    return { 'status': 'ok' }, 200
+    return {'status': 'ok'}, 200
 
 
-# Global exception handler to log tracebacks for easier debugging in deploy logs
+# Global exception handler to log tracebacks for easier debugging in deploy logs,
+# but let HTTPExceptions (like 404) pass through with their normal status codes.
 @app.errorhandler(Exception)
 def handle_exception(e):
-    import traceback
+    if isinstance(e, HTTPException):
+        # Return the original HTTP error response (e.g., 404) instead of 500
+        return e, e.code
+
     tb = traceback.format_exc()
     app.logger.error('Unhandled exception:\n%s', tb)
     return 'Internal Server Error', 500
@@ -258,6 +257,10 @@ def leaderboard():
     subquery = db.session.query(Record.user_id, db.func.min(Record.total_co2).label('min_co2')).group_by(Record.user_id).subquery()
     users = db.session.query(User, subquery.c.min_co2).join(subquery, User.id == subquery.c.user_id).order_by(subquery.c.min_co2).limit(5).all()
     return render_template('leaderboard.html', users=users)
+
+
+# Initialize DB after models are defined (for Vercel/serverless cold starts)
+initialize_database()
 
 
 if __name__ == '__main__':
