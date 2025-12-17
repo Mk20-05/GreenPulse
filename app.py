@@ -28,6 +28,35 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+
+def initialize_database():
+    """
+    Ensure the appropriate directory exists for SQLite and create tables.
+    This is called at import time so it works in serverless / Flask 3 environments
+    where before_first_request is not available.
+    """
+    try:
+        if os.environ.get("VERCEL"):
+            # /tmp is writable on Vercel serverless functions
+            os.makedirs('/tmp', exist_ok=True)
+        else:
+            os.makedirs('instance', exist_ok=True)
+    except Exception:
+        # Silently ignore directory creation errors; db.create_all() may still succeed
+        pass
+
+    try:
+        with app.app_context():
+            db.create_all()
+    except Exception:
+        # Avoid crashing import on DB init issues; they will show up in logs if needed
+        tb = traceback.format_exc()
+        app.logger.error('Database initialization error:\n%s', tb)
+
+
+# Initialize DB when the module is imported (for Vercel/serverless cold starts)
+initialize_database()
+
 # Health check endpoint for deployments
 @app.route('/health')
 def health():
@@ -232,26 +261,8 @@ def leaderboard():
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
+    # Local development entrypoint
     app.run(debug=True)
-
-
-# Ensure DB tables exist on first request (covers serverless/startup environments)
-@app.before_first_request
-def initialize_database():
-    # Ensure the appropriate directory exists for SQLite, depending on environment
-    try:
-        if os.environ.get("VERCEL"):
-            # /tmp is writable on Vercel serverless functions
-            os.makedirs('/tmp', exist_ok=True)
-        else:
-            os.makedirs('instance', exist_ok=True)
-    except Exception:
-        # Silently ignore directory creation errors; db.create_all() may still succeed
-        pass
-
-    db.create_all()
 
 
 @app.route('/debug-status')
