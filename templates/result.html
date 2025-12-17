@@ -6,7 +6,16 @@
     <div class="container mt-5">
         <div class="text-center mb-5">
             <h1 class="display-4 fw-bold">Your Footprint: <span class="text-primary">{{ results.total_co2 }} kg CO₂</span> <span class="badge bg-{{ results.badge[1] }} fs-5 align-middle">{{ results.badge[0] }}</span></h1>
-            <p class="lead text-muted">Your footprint is <span class="fw-bold">{{ results.comparison|abs }}% {{ 'lower' if results.comparison < 0 else 'higher' }}</span> than the average citizen.</p>
+            {% if results.comparison is not none %}
+            <p class="lead text-muted">
+                Your footprint is
+                <span class="fw-bold">
+                    {{ results.comparison|abs }}%
+                    {{ 'lower' if results.comparison < 0 else 'higher' }}
+                </span>
+                than the average citizen.
+            </p>
+            {% endif %}
         </div>
 
         <div class="row g-4">
