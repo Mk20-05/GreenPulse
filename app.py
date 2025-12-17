@@ -12,7 +12,18 @@ from datetime import datetime
 app = Flask(__name__)
 # Use environment variables for secrets and database in production
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///instance/database.db')
+
+# Choose database URI based on environment:
+# - If DATABASE_URL is set, use that (e.g., a hosted PostgreSQL/MySQL DB in production)
+# - Otherwise, fall back to:
+#     * /tmp/database.db on Vercel (writable in serverless functions)
+#     * instance/database.db for local development
+if os.environ.get("VERCEL"):
+    default_db_uri = "sqlite:////tmp/database.db"
+else:
+    default_db_uri = "sqlite:///instance/database.db"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', default_db_uri)
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -229,11 +240,17 @@ if __name__ == '__main__':
 # Ensure DB tables exist on first request (covers serverless/startup environments)
 @app.before_first_request
 def initialize_database():
-    # Make sure instance directory exists for SQLite fallback
+    # Ensure the appropriate directory exists for SQLite, depending on environment
     try:
-        os.makedirs('instance', exist_ok=True)
+        if os.environ.get("VERCEL"):
+            # /tmp is writable on Vercel serverless functions
+            os.makedirs('/tmp', exist_ok=True)
+        else:
+            os.makedirs('instance', exist_ok=True)
     except Exception:
+        # Silently ignore directory creation errors; db.create_all() may still succeed
         pass
+
     db.create_all()
 
 
