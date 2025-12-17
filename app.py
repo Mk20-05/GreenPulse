@@ -221,3 +221,14 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
+
+# Ensure DB tables exist on first request (covers serverless/startup environments)
+@app.before_first_request
+def initialize_database():
+    # Make sure instance directory exists for SQLite fallback
+    try:
+        os.makedirs('instance', exist_ok=True)
+    except Exception:
+        pass
+    db.create_all()
