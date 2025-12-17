@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Your Carbon Footprint Results - GreenPulse{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold">Your Footprint: <span class="text-primary">{{ results.total_co2 }} kg CO₂</span> <span class="badge bg-{{ results.badge[1] }} fs-5 align-middle">{{ results.badge[0] }}</span></h1>
+            <p class="lead text-muted">Your footprint is <span class="fw-bold">{{ results.comparison|abs }}% {{ 'lower' if results.comparison < 0 else 'higher' }}</span> than the average citizen.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <canvas id="footprintPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <canvas id="comparisonBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h3 class="text-center mb-4">🌍 Global Comparison</h3>
+                        <h5 class="text-center mb-4 text-muted">Your Annual Carbon Footprint: <span class="text-dark">{{ results.user_annual_tons }} tons CO₂</span></h5>
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Region/Entity</th>
+                                                <th>Annual Tons CO₂ per Capita</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="table-success fw-bold">
+                                                <td>Your Footprint</td>
+                                                <td>{{ results.user_annual_tons }}</td>
+                                            </tr>
+                                            {% for region, value in results.global_stats.items() %}
+                                            <tr>
+                                                <td>{{ region }}</td>
+                                                <td>{{ value }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="globalComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5 g-4">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-0 bg-soft-green">
+                    <div class="card-body p-4">
+                        <h3 class="mb-3"><i class="fas fa-lightbulb text-warning"></i> Eco-Friendly Tips</h3>
+                        <ul class="list-group list-group-flush bg-transparent">
+                            {% for tip in results.eco_tips %}
+                            <li class="list-group-item bg-transparent border-bottom border-light ps-0"><i class="fas fa-check text-success me-2"></i>{{ tip }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-0 bg-soft-blue">
+                    <div class="card-body p-4">
+                        <h3 class="mb-3"><i class="fas fa-robot text-primary"></i> AI Eco Advisor</h3>
+                        <div class="p-3 bg-white rounded shadow-sm">
+                            {% for tip in results.ai_tips %}
+                            <p class="card-text mb-0">{{ tip }}</p>
+                            {% else %}
+                            <p class="card-text mb-0">Great job! Your habits are eco-friendly.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5 mb-5">
+            <div class="col-md-12">
+                <div class="card bg-gradient-primary text-white border-0 shadow">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4">
+                        <h3 class="mb-0"><i class="fas fa-globe-americas me-2"></i>AI Global Insights & Recommendations</h3>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        {% for insight in results.ai_global_insights %}
+                            <p class="card-text fs-5">{{ insight }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4 mb-5">
+            <a href="/calculator" class="btn btn-secondary btn-lg me-3"><i class="fas fa-redo me-2"></i>Recalculate</a>
+            <a href="/leaderboard" class="btn btn-info btn-lg text-white"><i class="fas fa-trophy me-2"></i>View Leaderboard</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const results = {{ results | tojson }};
+        try {
+            localStorage.setItem('eco_pie_data', JSON.stringify(results.pie_data));
+            localStorage.setItem('eco_total_co2', results.total_co2);
+        } catch (e) {
+        }
+
+        const pieCtx = document.getElementById('footprintPieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Travel', 'Electricity', 'Food', 'Waste'],
+                datasets: [{
+                    data: [results.pie_data.travel, results.pie_data.electricity, results.pie_data.food, results.pie_data.waste],
+                    backgroundColor: ['#4CAF50', '#FFC107', '#FF5722', '#607D8B'],
+                    borderWidth: 0
+                }]
+            },
+            options: { 
+                responsive: true, 
+                plugins: { 
+                    legend: { position: 'bottom' }, 
+                    title: { display: true, text: 'Emission Sources (%)', font: { size: 16 } } 
+                } 
+            }
+        });
+
+        const barCtx = document.getElementById('comparisonBarChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Your Footprint (kg)', 'National Average (kg)'],
+                datasets: [{
+                    label: 'CO2 (kg)',
+                    data: [results.total_co2, results.national_average],
+                    backgroundColor: ['#2E8B57', '#E0E0E0'],
+                    borderRadius: 5
+                }]
+            },
+            options: { 
+                responsive: true, 
+                plugins: { 
+                    legend: { display: false }, 
+                    title: { display: true, text: 'Weekly Footprint Comparison', font: { size: 16 } } 
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { display: false } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        const globalCtx = document.getElementById('globalComparisonChart').getContext('2d');
+        const globalLabels = Object.keys(results.global_stats);
+        const globalData = Object.values(results.global_stats);
+
+        globalLabels.unshift('Your Footprint');
+        globalData.unshift(results.user_annual_tons);
+
+        const backgroundColors = Array(globalLabels.length).fill('#76C7C0');
+        backgroundColors[0] = '#FFD700';
+
+        new Chart(globalCtx, {
+            type: 'bar',
+            data: {
+                labels: globalLabels,
+                datasets: [{
+                    label: 'Annual Tons CO₂ per Capita',
+                    data: globalData,
+                    backgroundColor: backgroundColors,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Global Annual CO₂ Footprint Comparison', font: { size: 16 } }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+{% endblock %}

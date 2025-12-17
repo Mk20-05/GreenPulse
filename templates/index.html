@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}GreenPulse | Track, Visualize & Reduce{% endblock %}
+
+{% block content %}
+    <section class="hero-section d-flex align-items-center">
+        <div class="floating-leaf" style="left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-leaf" style="left: 30%; animation-delay: 5s;"></div>
+        <div class="floating-leaf" style="left: 70%; animation-delay: 2s;"></div>
+        <div class="floating-leaf" style="left: 90%; animation-delay: 7s;"></div>
+
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <h1 class="hero-title">Track, Visualize & Reduce Your Carbon Footprint</h1>
+                    <p class="hero-subtitle">
+                        Join the movement towards a sustainable future. Monitor your daily impact, get AI-powered insights, and compete on the global leaderboard.
+                    </p>
+                    <div class="d-flex gap-3">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('calculator') }}" class="btn btn-primary btn-lg text-white">Go to Dashboard</a>
+                        {% else %}
+                            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg text-white">Start Tracking</a>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Login</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <div class="hero-img position-relative d-inline-block">
+                         <i class="fas fa-globe-americas" style="font-size: 300px; color: var(--secondary-aqua); opacity: 0.2;"></i>
+                         <i class="fas fa-leaf" style="font-size: 150px; color: var(--primary-green); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                         <i class="fas fa-wind" style="font-size: 80px; color: #90CAF9; position: absolute; top: 20%; right: 10%;"></i>
+                         <i class="fas fa-solar-panel" style="font-size: 60px; color: var(--accent-gold); position: absolute; bottom: 20%; left: 10%;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section id="features" class="py-5">
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="mb-3">What We Track</h2>
+                <p class="text-muted" style="max-width: 600px; margin: 0 auto;">Comprehensive monitoring of your daily activities to give you the most accurate carbon footprint analysis.</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card" data-key="travel">
+                        <div class="feature-icon">
+                            <i class="fas fa-plane"></i>
+                        </div>
+                        <h4>Travel</h4>
+                        <p class="text-muted small">Track daily commute and long-distance travel to see your transport emissions.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card" data-key="electricity">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h4>Electricity</h4>
+                        <p class="text-muted small">Monitor household energy consumption and find ways to save power.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card" data-key="food">
+                        <div class="feature-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h4>Food</h4>
+                        <p class="text-muted small">Analyze the impact of your diet choices, from meat consumption to plant-based meals.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card" data-key="waste">
+                        <div class="feature-icon">
+                            <i class="fas fa-recycle"></i>
+                        </div>
+                        <h4>Waste</h4>
+                        <p class="text-muted small">Log your weekly waste generation and learn how to recycle more effectively.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 order-lg-2">
+                    <h2 class="mb-4">AI-Powered Sustainability</h2>
+                    <p class="lead text-muted mb-4">Our advanced AI analyzes your habits to provide personalized recommendations.</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success mt-1 me-3"></i>
+                            <div><strong>Smart Insights:</strong> Compare your footprint with global averages.</div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success mt-1 me-3"></i>
+                            <div><strong>Actionable Tips:</strong> Get specific advice on how to reduce emissions.</div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="fas fa-check-circle text-success mt-1 me-3"></i>
+                            <div><strong>Visual Data:</strong> Clear, interactive charts to visualize your impact.</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-6 order-lg-1 mb-5 mb-lg-0 text-center">
+                     <i class="fas fa-chart-pie" style="font-size: 200px; color: var(--secondary-aqua); opacity: 0.8;"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="modal fade" id="featureModal" tabindex="-1" aria-labelledby="featureModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="featureModalLabel">Contribution</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+                    <div class="modal-body" id="featureModalBody">
+                    </div>
+          <div class="modal-footer">
+            <a href="{{ url_for('calculator') }}" class="btn btn-primary">Go to Dashboard</a>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const key = card.dataset.key;
+            const pretty = key.charAt(0).toUpperCase() + key.slice(1);
+            const pie = localStorage.getItem('eco_pie_data');
+            const total = localStorage.getItem('eco_total_co2');
+
+            let content = '';
+            if (pie) {
+                try {
+                    const data = JSON.parse(pie);
+                    const pct = (data && typeof data[key] === 'number') ? data[key] : null;
+                    if (pct !== null) {
+                        content = `${pretty} contributes <strong>${pct}%</strong> of your latest footprint.`;
+                        if (total) {
+                            content += `<br><span class="text-muted small">Last total: ${total} kg CO₂</span>`;
+                        }
+                    } else {
+                        content = `No data found for ${pretty}.`;
+                    }
+                } catch (e) {
+                    content = 'Your latest results could not be read.';
+                }
+            } else {
+                content = `No recent calculation found. <a href="${window.location.origin + '/calculator'}" class="link-primary">Go to Dashboard</a> to calculate.`;
+            }
+
+            const body = document.getElementById('featureModalBody');
+            const title = document.getElementById('featureModalLabel');
+            body.innerHTML = content;
+            title.textContent = `${pretty} Contribution`;
+            const modal = new bootstrap.Modal(document.getElementById('featureModal'));
+            modal.show();
+        });
+    });
+</script>
+{% endblock %}

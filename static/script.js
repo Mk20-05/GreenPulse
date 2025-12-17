@@ -1,0 +1,1 @@
+console.log("EcoTrack script loaded.");
