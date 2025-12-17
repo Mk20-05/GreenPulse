@@ -1,4 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+import traceback
+import sys
+import platform
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -244,6 +247,10 @@ def debug_status():
     try:
         info['user_count'] = User.query.count()
         info['record_count'] = Record.query.count()
-    except Exception as e:
-        info['db_error'] = str(e)
+    except Exception:
+        tb = traceback.format_exc()
+        info['db_error'] = tb
+        app.logger.error('debug-status DB error:\n%s', tb)
+    info['python_version'] = sys.version
+    info['platform'] = platform.platform()
     return jsonify(info), 200
