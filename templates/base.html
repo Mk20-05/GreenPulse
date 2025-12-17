@@ -67,6 +67,27 @@
                 &copy; 2025 GreenPulse. Empowering a greener future.<br>
                 Designed for sustainability.
             </p>
+
+            <div class="feedback-section mt-3">
+                <h5 class="mb-3">Send Feedback</h5>
+                <form action="https://formspree.io/f/{your_form_id}" method="POST" class="row g-2 justify-content-center" novalidate>
+                    <input type="hidden" name="_next" value="{{ request.url_root }}">
+                    <div class="col-md-3">
+                        <input type="text" name="name" class="form-control" placeholder="Your name" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="email" name="email" class="form-control" placeholder="Your email" required>
+                    </div>
+                    <div class="col-12">
+                        <textarea name="message" class="form-control" rows="3" placeholder="Your message" required></textarea>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-success">Send Feedback</button>
+                    </div>
+                </form>
+                <small class="text-muted d-block mt-2">Or email us at support@greenpulse.example</small>
+                <p class="text-muted small mt-2">Replace <code>{your_form_id}</code> in the form action with your Formspree form ID.</p>
+            </div>
         </div>
     </footer>
 

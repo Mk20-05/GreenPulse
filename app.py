@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 import random
 from datetime import datetime
 
@@ -65,7 +66,8 @@ def register():
         if User.query.filter_by(username=username).first():
             flash('Username already exists.')
             return redirect(url_for('register'))
-        new_user = User(username=username, password=password)
+        pw_hash = generate_password_hash(password)
+        new_user = User(username=username, password=pw_hash)
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
@@ -79,7 +81,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
+        if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('calculator'))
         flash('Invalid credentials.')
@@ -109,9 +111,12 @@ GLOBAL_STATS = {
 }
 
 
-@app.route('/calculate', methods=['POST'])
+@app.route('/calculate', methods=['GET', 'POST'])
 @login_required
 def calculate():
+    if request.method == 'GET':
+        return redirect(url_for('calculator'))
+
     try:
         period_map = {'daily': 1, 'weekly': 7, 'monthly': 30}
         period = request.form.get('period', 'weekly')
