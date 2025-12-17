@@ -14,6 +14,20 @@ db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+# Health check endpoint for deployments
+@app.route('/health')
+def health():
+    return { 'status': 'ok' }, 200
+
+
+# Global exception handler to log tracebacks for easier debugging in deploy logs
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    tb = traceback.format_exc()
+    app.logger.error('Unhandled exception:\n%s', tb)
+    return 'Internal Server Error', 500
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
